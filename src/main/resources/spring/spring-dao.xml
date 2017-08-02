@@ -46,4 +46,13 @@
         <!-- 给出需要扫描Dao接口包 -->
         <property name="basePackage" value="com.apabi.center.dao" />
     </bean>
+
+     <bean id="springCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+        <property name="cacheManager" ref="ehcacheManager"/>
+    </bean>
+
+    <!--ehcache-->
+    <bean id="ehcacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+        <property name="configLocation" value="classpath:ehcache/ehcache-config.xml"/>
+    </bean>
 </beans>
