@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import com.apabi.center.service.CacheService;
 
 @Service
-public class CacheServiceImpl implements CacheService{
+public class CacheServiceImpl implements CacheService {
 
 	private Cache cache;
 	
 	@Autowired
-	public CacheServiceImpl(CacheManager cacheManager){
+	public CacheServiceImpl(CacheManager cacheManager) {
 		this.cache = cacheManager.getCache("code-cache");
 	}
 	

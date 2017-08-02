@@ -17,7 +17,7 @@ public class UserController {
 	private CacheService cacheService;
 	
 	@RequestMapping("/index")
-	public String index(Model model){
+	public String index(Model model) {
 		String name = null;
 //		logger.debug("recive the request");
 		cacheService.addAuthCode("123", "tom");
