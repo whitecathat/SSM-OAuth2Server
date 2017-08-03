@@ -1,28 +1,45 @@
 package com.apabi.center.controller;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.apabi.center.service.CacheService;
+import com.apabi.center.service.UserService;
 
 @Controller
+@RequestMapping("/user")
 public class UserController {
 	
-	private static final Logger logger = Logger.getLogger(UserController.class);
-	
 	@Autowired
-	private CacheService cacheService;
+	private UserService userService;
 	
-	@RequestMapping("/index")
-	public String index(Model model) {
-		String name = null;
-//		logger.debug("recive the request");
-		cacheService.addAuthCode("123", "tom");
-		name = cacheService.getUsernameByAuthCode("123");
-		model.addAttribute("username", name);
-		return "index";
+	@RequestMapping(value = "/register")
+	public String login(String message, Model model) {
+		model.addAttribute("message", message);
+		return "register";
+	}
+	
+	@RequestMapping(value = "/check", method = RequestMethod.POST)
+	public String check(String name, String email, String password, String repassword) {
+		String message = null;
+		
+		if (!StringUtils.isEmpty(name) && !StringUtils.isEmpty(email) && !StringUtils.isEmpty(password) && !StringUtils.isEmpty(repassword)) {
+			if (password.equals(repassword)) {
+				return "redirect:/user/success";
+			} else {
+				message = "password is different";
+			}
+		} else {
+			message = "have null";
+		}
+		return "redirect:/user/register?message=" + message;
+	}
+	
+	@RequestMapping("/success")
+	public String success() {
+		return "success";
 	}
 }
