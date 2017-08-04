@@ -2,7 +2,10 @@ package com.apabi.center.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,6 +19,7 @@ import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +27,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.apabi.center.service.OAuthService;
+
 @Controller
 @RequestMapping("/OAuth")
 public class OAuthController {
+	
+	@Autowired
+	private OAuthService oAuthService;
 	
 	/**
 	 * @name authorize
@@ -56,7 +65,7 @@ public class OAuthController {
 	
 	/**
 	 * @name code2Token
-	 * @param request(grant_type, code, redirect_uri, client_id, client_secret)
+	 * @param request(grant_type, code, redirect_uri, client_id, client_secret, (Content-Type))
 	 * @return
 	 * @throws OAuthSystemException
 	 * @throws OAuthProblemException
@@ -79,5 +88,21 @@ public class OAuthController {
 	@RequestMapping("callback")
 	public void callback() {
 		
+	}
+	
+	public boolean checkLoginStatus(HttpServletRequest request) {
+		Map<String,Cookie> cookieMap = new HashMap<String,Cookie>();
+	    Cookie[] cookies = request.getCookies();
+	    
+	    if(null != cookies){
+	        for(Cookie cookie : cookies){
+	            cookieMap.put(cookie.getName(), cookie);
+	        }
+	    }
+	    
+	    if ((cookieMap.get("token") != null)) {
+	    	return true;
+	    }
+		return false;  	
 	}
 }

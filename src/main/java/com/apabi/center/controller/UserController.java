@@ -28,7 +28,10 @@ public class UserController {
 		
 		if (!StringUtils.isEmpty(name) && !StringUtils.isEmpty(email) && !StringUtils.isEmpty(password) && !StringUtils.isEmpty(repassword)) {
 			if (password.equals(repassword)) {
-				return "redirect:/user/success";
+				if (userService.saveUser(name, email, password) == true) {
+					return "redirect:/user/success";
+				}
+				message = "system has error";
 			} else {
 				message = "password is different";
 			}

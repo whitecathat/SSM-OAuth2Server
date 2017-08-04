@@ -3,6 +3,12 @@
     PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.apabi.center.dao.UserMapper">
+	<insert id="saveUser" useGeneratedKeys="true" keyProperty="uid">
+		insert into user(name, status) value(#{name}, #{status})
+	</insert>
 	
+	<insert id="saveLocalUser">
+		insert into localUser(uid, email, password, salt) value(#{uid}, #{email}, #{password}, #{salt})
+	</insert>
 	
 </mapper>
