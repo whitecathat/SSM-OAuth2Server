@@ -7,7 +7,9 @@
 <title>Insert title here</title>
 </head>
 <body>
-<form action="/login" method="POST">
+<form action="/center/OAuth/authorize" method="POST">
+	<input type="hidden" name="client_id" value="${clientId}">
+	<input type="hidden" name="redirect_uri" value="${redirectURI}">
 	<input type="text" name="name"/>
 	<input type="password" name="password"/>
 	<input type="submit" value="登录">

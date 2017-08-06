@@ -16,6 +16,7 @@ import org.apache.oltu.oauth2.as.request.OAuthAuthzRequest;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
 import org.apache.oltu.oauth2.common.OAuth;
+import org.apache.oltu.oauth2.common.error.OAuthError;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
@@ -24,9 +25,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.alibaba.druid.util.StringUtils;
+import com.apabi.center.entity.LocalUser;
 import com.apabi.center.service.OAuthService;
 
 @Controller
@@ -44,17 +48,44 @@ public class OAuthController {
 	 * @throws OAuthProblemException
 	 */
 	@RequestMapping("/authorize")
-	public Object authorize(HttpServletRequest request) throws OAuthSystemException, OAuthProblemException {
-		OAuthAuthzRequest oAuthzRequest = new OAuthAuthzRequest(request);
-		String authCode = null;
-		OAuthIssuerImpl oAuthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
-		authCode = oAuthIssuerImpl.authorizationCode();
-		String redirectURI = oAuthzRequest.getRedirectURI();
-        OAuthASResponse.OAuthAuthorizationResponseBuilder builder = OAuthASResponse.authorizationResponse(request, HttpServletResponse.SC_FOUND);
-        builder.setCode(authCode);
-        final OAuthResponse response = builder.location(redirectURI).buildQueryMessage();
-        HttpHeaders headers = new HttpHeaders();
+	public Object authorize(HttpServletRequest request, HttpServletResponse cookieResponse, Model model) throws OAuthSystemException, OAuthProblemException {
         try{
+			OAuthAuthzRequest oAuthzRequest = new OAuthAuthzRequest(request);
+			String authCode = null;
+	
+			String redirectURI = oAuthzRequest.getRedirectURI();
+			String clientId = oAuthzRequest.getClientId();
+			String cert = getCert(request);
+			
+			if (!oAuthService.checkClientByIdURI(clientId, redirectURI)) {
+	            OAuthResponse response =
+	                    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+	                            .setError(OAuthError.TokenResponse.INVALID_CLIENT)
+	                            .buildJSONMessage();
+	            return new ResponseEntity(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+			}
+			LocalUser localUser = oAuthService.findLocalUserByCert(cert);
+			if (StringUtils.isEmpty(cert) || localUser == null) {
+				LocalUser loginLocalUser = (LocalUser) login(request, cookieResponse);
+				if (loginLocalUser == null) {
+					model.addAttribute("clientId", clientId);
+					model.addAttribute("redirectURI", redirectURI);
+					return "login";
+				} else {
+					int uid = loginLocalUser.getUid();
+				}
+			} else {
+				int uid = localUser.getUid();
+			}
+			
+			OAuthIssuerImpl oAuthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
+			authCode = oAuthIssuerImpl.authorizationCode();
+			// need to save code by cache
+			// 
+	        OAuthASResponse.OAuthAuthorizationResponseBuilder builder = OAuthASResponse.authorizationResponse(request, HttpServletResponse.SC_FOUND);
+	        builder.setCode(authCode);
+        	final OAuthResponse response = builder.location(redirectURI).buildQueryMessage();
+        	HttpHeaders headers = new HttpHeaders();
 	        headers.setLocation(new URI(response.getLocationUri()));
 	        return new ResponseEntity<>(headers, HttpStatus.valueOf(response.getResponseStatus()));
 		} catch (URISyntaxException e) {
@@ -90,19 +121,44 @@ public class OAuthController {
 		
 	}
 	
-	public boolean checkLoginStatus(HttpServletRequest request) {
+	/**
+	 * get Cert from cookie
+	 * @param request
+	 * @return
+	 */
+	public String getCert(HttpServletRequest request) {
 		Map<String,Cookie> cookieMap = new HashMap<String,Cookie>();
 	    Cookie[] cookies = request.getCookies();
+	    String cert = null;
 	    
 	    if(null != cookies){
 	        for(Cookie cookie : cookies){
 	            cookieMap.put(cookie.getName(), cookie);
 	        }
+	        cert = cookieMap.get("ce_cert").getValue();
 	    }
 	    
-	    if ((cookieMap.get("token") != null)) {
-	    	return true;
-	    }
-		return false;  	
+		return cert;  	
+	}
+	
+	public Object login(HttpServletRequest request, HttpServletResponse response) {
+		if (!"POST".equals(request.getMethod())) {
+			return null;
+		}
+		
+		String email = request.getParameter("email");
+		String password = request.getParameter("password");
+		
+		if (StringUtils.isEmpty(email) || StringUtils.isEmpty(password)) {
+			return null;
+		}
+		
+		LocalUser localUser = oAuthService.findLocalUserByEmailPassword(email, password);
+		if (localUser != null) {
+			Cookie cookie = new Cookie("cert", localUser.getSalt());
+			// need return user's uid
+			response.addCookie(cookie);
+		}
+		return localUser;
 	}
 }

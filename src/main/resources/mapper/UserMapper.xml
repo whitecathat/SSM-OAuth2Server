@@ -11,4 +11,14 @@
 		insert into localUser(uid, email, password, salt) value(#{uid}, #{email}, #{password}, #{salt})
 	</insert>
 	
+	<select id="findLocalUserBySalt" resultType="com.apabi.center.entity.LocalUser">
+		select * from localUser where salt=#{salt}
+	</select>
+	
+	
+	
+	<select id="findLocalUserByEmailPassword" resultType="com.apabi.center.entity.LocalUser">
+		select * from from localUser where email=#{email}
+	</select>
+	
 </mapper>

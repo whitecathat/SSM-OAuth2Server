@@ -3,5 +3,7 @@
     PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.apabi.center.dao.ClientMapper">
-
+	<select id="findClientByIdURI" resultType="com.apabi.center.entity.Client">
+	select * from client where clientId=#{clientId} and redirectUri=#{redirectURI}
+	</select>
 </mapper>
