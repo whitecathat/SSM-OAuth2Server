@@ -6,4 +6,7 @@
 	<select id="findClientByIdURI" resultType="com.apabi.center.entity.Client">
 	select * from client where clientId=#{clientId} and redirectUri=#{redirectURI}
 	</select>
+	<select id="findClientByIdSecretURI" resultType="com.apabi.center.entity.Client">
+	select * from client where clientId=#{clientId} and clientSecret=#{clientSecret} and redirectUri=#{redirectURI}
+	</select>
 </mapper>

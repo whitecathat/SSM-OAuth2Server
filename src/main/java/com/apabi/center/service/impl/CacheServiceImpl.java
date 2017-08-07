@@ -18,13 +18,18 @@ public class CacheServiceImpl implements CacheService {
 	}
 	
 	@Override
-	public void addAuthCode(String authCode, String username) {
-		cache.put(authCode, username);
+	public void addAuthCode(String authCode, String uid) {
+		cache.put(authCode, uid);
 	}
 
 	@Override
-	public String getUsernameByAuthCode(String authCode) {
+	public String getUidByAuthCode(String authCode) {
 		return (String)cache.get(authCode).get();
+	}
+
+	@Override
+	public void addAccessToekn(String accessToken, String uid) {
+		cache.put(accessToken, uid);
 	}
 
 }

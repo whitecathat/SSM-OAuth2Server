@@ -10,8 +10,9 @@
 <form action="/center/OAuth/authorize" method="POST">
 	<input type="hidden" name="client_id" value="${clientId}">
 	<input type="hidden" name="redirect_uri" value="${redirectURI}">
-	<input type="text" name="name"/>
-	<input type="password" name="password"/>
+	<input type="hidden" name="response_type" value="code">
+	邮箱：<input type="text" name="email"/>
+	密码：<input type="password" name="password"/>
 	<input type="submit" value="登录">
 </form>
 </body>

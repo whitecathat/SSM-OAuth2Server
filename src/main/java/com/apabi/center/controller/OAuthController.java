@@ -52,17 +52,17 @@ public class OAuthController {
         try{
 			OAuthAuthzRequest oAuthzRequest = new OAuthAuthzRequest(request);
 			String authCode = null;
-	
 			String redirectURI = oAuthzRequest.getRedirectURI();
 			String clientId = oAuthzRequest.getClientId();
 			String cert = getCert(request);
+			int uid;
 			
 			if (!oAuthService.checkClientByIdURI(clientId, redirectURI)) {
 	            OAuthResponse response =
 	                    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
 	                            .setError(OAuthError.TokenResponse.INVALID_CLIENT)
 	                            .buildJSONMessage();
-	            return new ResponseEntity(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+	            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 			}
 			LocalUser localUser = oAuthService.findLocalUserByCert(cert);
 			if (StringUtils.isEmpty(cert) || localUser == null) {
@@ -72,16 +72,16 @@ public class OAuthController {
 					model.addAttribute("redirectURI", redirectURI);
 					return "login";
 				} else {
-					int uid = loginLocalUser.getUid();
+					uid = loginLocalUser.getUid();
 				}
 			} else {
-				int uid = localUser.getUid();
+				uid = localUser.getUid();
 			}
 			
 			OAuthIssuerImpl oAuthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
 			authCode = oAuthIssuerImpl.authorizationCode();
-			// need to save code by cache
-			// 
+			
+			oAuthService.addOAuthCode(authCode, uid);
 	        OAuthASResponse.OAuthAuthorizationResponseBuilder builder = OAuthASResponse.authorizationResponse(request, HttpServletResponse.SC_FOUND);
 	        builder.setCode(authCode);
         	final OAuthResponse response = builder.location(redirectURI).buildQueryMessage();
@@ -104,16 +104,45 @@ public class OAuthController {
 	@RequestMapping(value = "access_token", method = RequestMethod.POST)
 	public Object code2Token(HttpServletRequest request) throws OAuthSystemException, OAuthProblemException {
 		OAuthTokenRequest tokenRequest = new OAuthTokenRequest(request);
+		String clientId = tokenRequest.getClientId();
+		String clientSecret = tokenRequest.getClientSecret();
+		String redirectURI = tokenRequest.getRedirectURI();
+		
+		if (!oAuthService.checkClientByIdSecretURI(clientId, clientSecret, redirectURI)) {
+            OAuthResponse response =
+                    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+                            .setError(OAuthError.TokenResponse.INVALID_CLIENT)
+                            .buildJSONMessage();
+            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+		}
+		String oauthCode = tokenRequest.getCode();
+		int uid = oAuthService.getUidByCode(oauthCode);
+		String uidStr = String.valueOf(uid);
+		if (uid == 0) {
+            OAuthResponse response =
+                    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+                            .setError(OAuthError.TokenResponse.INVALID_CLIENT)
+                            .buildJSONMessage();
+            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+		}
+		
 		OAuthIssuer oauthIssuerImpl = new OAuthIssuerImpl(new MD5Generator());
         final String accessToken = oauthIssuerImpl.accessToken();
+        
+        oAuthService.addAccessToken(accessToken, uid);
         OAuthResponse response = OAuthASResponse
                 .tokenResponse(HttpServletResponse.SC_OK)
                 .setAccessToken(accessToken)
                 .setTokenType(OAuth.OAUTH_TOKEN_TYPE)
-                .setParam("uid", "123456")
+                .setParam("uid", uidStr)
                 .setExpiresIn(String.valueOf(3600))
                 .buildJSONMessage();
         return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+	}
+	
+	@RequestMapping(value = "get_user_info", method = RequestMethod.POST)
+	public Object getUserInfo() {
+		return null;
 	}
 	
 	@RequestMapping("callback")
@@ -135,7 +164,9 @@ public class OAuthController {
 	        for(Cookie cookie : cookies){
 	            cookieMap.put(cookie.getName(), cookie);
 	        }
-	        cert = cookieMap.get("ce_cert").getValue();
+	        if (cookieMap.get("cert") != null) {
+	        	cert = cookieMap.get("cert").getValue();
+	        }
 	    }
 	    
 		return cert;  	
