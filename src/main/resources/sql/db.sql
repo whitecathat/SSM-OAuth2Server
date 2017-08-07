@@ -1,4 +1,4 @@
-use demo;
+
 
 create database center default character set utf8 collate utf8_general_ci;
 
@@ -7,24 +7,10 @@ use center;
 CREATE TABLE `user` (
   `uid` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  PRIMARY KEY (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-
-select * from user;
-
-use center;
-drop table user;
-
-CREATE TABLE `user` (
-  `uid` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
   `status` bigint(2) NOT NULL,
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
-drop table localUser;
 CREATE TABLE `localUser` (
   `uid` bigint(20) NOT NULL,
   `email` varchar(255) NOT NULL,
