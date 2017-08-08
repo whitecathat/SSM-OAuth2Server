@@ -64,7 +64,7 @@ public class OAuthController {
 	                            .buildJSONMessage();
 	            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 			}
-			if (oAuthzRequest.getResponseType().equals(ResponseType.CODE.toString())) {
+			if (!oAuthzRequest.getResponseType().equals(ResponseType.CODE.toString())) {
 		    OAuthResponse response = 
 			    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
 			    	    .setError(OAuthError.TokenResponse.INVALID_GRANT)
@@ -147,7 +147,7 @@ public class OAuthController {
         OAuthResponse response = OAuthASResponse
                 .tokenResponse(HttpServletResponse.SC_OK)
                 .setAccessToken(accessToken)
-                .setTokenType(OAuth.OAUTH_TOKEN_TYPE)
+                .setTokenType(OAuth.OAUTH_ACCESS_TOKEN)
                 .setParam("uid", uidStr)
                 .setExpiresIn(String.valueOf(3600))
                 .buildJSONMessage();
