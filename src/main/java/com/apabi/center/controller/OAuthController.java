@@ -64,6 +64,13 @@ public class OAuthController {
 	                            .buildJSONMessage();
 	            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 			}
+			if (oAuthzRequest.getResponseType().equals(ResponseType.CODE.toString())) {
+		    OAuthResponse response = 
+			    OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+			    	    .setError(OAuthError.TokenResponse.INVALID_GRANT)
+			            .buildJSONMessage();
+		    return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+            		}
 			LocalUser localUser = oAuthService.findLocalUserByCert(cert);
 			if (StringUtils.isEmpty(cert) || localUser == null) {
 				LocalUser loginLocalUser = (LocalUser) login(request, cookieResponse);
@@ -115,6 +122,13 @@ public class OAuthController {
                             .buildJSONMessage();
             return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 		}
+		if (!tokenRequest.getGrantType().equals(GrantType.AUTHORIZATION_CODE.toString())) {
+            OAuthResponse response = OAuthASResponse
+                    .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
+                    .setError(OAuthError.TokenResponse.INVALID_GRANT)
+                    .buildJSONMessage();
+            return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
+                }
 		String oauthCode = tokenRequest.getCode();
 		int uid = oAuthService.getUidByCode(oauthCode);
 		String uidStr = String.valueOf(uid);
