@@ -24,7 +24,10 @@ public class CacheServiceImpl implements CacheService {
 
 	@Override
 	public String getUidByAuthCode(String authCode) {
-		return (String)cache.get(authCode).get();
+		if (cache.get(authCode) == null) {
+			return "";
+		}
+		return (String) cache.get(authCode).get();
 	}
 
 	@Override
