@@ -5,7 +5,7 @@ import java.util.UUID;
 public class CreateSalt {
 
 	public static String getSalt() {
-		String salt = UUID.randomUUID().toString();
+		String salt = UUID.randomUUID().toString().replace("-", "");
 		return salt;
 	}
 }

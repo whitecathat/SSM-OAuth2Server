@@ -2,13 +2,12 @@ package com.apabi.center.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.apabi.center.util.CertUtil;
 import org.apache.oltu.oauth2.as.issuer.MD5Generator;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
@@ -20,16 +19,18 @@ import org.apache.oltu.oauth2.common.error.OAuthError;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.apache.oltu.oauth2.common.message.types.ResponseType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.alibaba.druid.util.StringUtils;
 import com.apabi.center.entity.LocalUser;
 import com.apabi.center.service.OAuthService;
 
@@ -54,7 +55,7 @@ public class OAuthController {
 			String authCode = null;
 			String redirectURI = oAuthzRequest.getRedirectURI();
 			String clientId = oAuthzRequest.getClientId();
-			String cert = getCert(request);
+			String cert = CertUtil.getCertFromCookie(request);
 			int uid;
 			
 			if (!oAuthService.checkClientByIdURI(clientId, redirectURI)) {
@@ -164,27 +165,7 @@ public class OAuthController {
 		
 	}
 	
-	/**
-	 * get Cert from cookie
-	 * @param request
-	 * @return
-	 */
-	public String getCert(HttpServletRequest request) {
-		Map<String,Cookie> cookieMap = new HashMap<String,Cookie>();
-	    Cookie[] cookies = request.getCookies();
-	    String cert = null;
-	    
-	    if(null != cookies){
-	        for(Cookie cookie : cookies){
-	            cookieMap.put(cookie.getName(), cookie);
-	        }
-	        if (cookieMap.get("cert") != null) {
-	        	cert = cookieMap.get("cert").getValue();
-	        }
-	    }
-	    
-		return cert;  	
-	}
+
 	
 	public Object login(HttpServletRequest request, HttpServletResponse response) {
 		if (!"POST".equals(request.getMethod())) {

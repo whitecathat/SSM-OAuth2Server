@@ -6,8 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import com.alibaba.druid.util.StringUtils;
 import com.apabi.center.consts.UserConsts;
 import com.apabi.center.dao.UserMapper;
 import com.apabi.center.entity.LocalUser;
