@@ -160,13 +160,6 @@ public class OAuthController {
 		return null;
 	}
 	
-	@RequestMapping("callback")
-	public void callback() {
-		
-	}
-	
-
-	
 	public Object login(HttpServletRequest request, HttpServletResponse response) {
 		if (!"POST".equals(request.getMethod())) {
 			return null;
@@ -182,7 +175,6 @@ public class OAuthController {
 		LocalUser localUser = oAuthService.findLocalUserByEmailPassword(email, password);
 		if (localUser != null) {
 			Cookie cookie = new Cookie("cert", localUser.getSalt());
-			// need return user's uid
 			response.addCookie(cookie);
 		}
 		return localUser;
